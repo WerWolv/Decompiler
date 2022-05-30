@@ -6,10 +6,10 @@ namespace dc::hlp {
 
     template<typename ... Ts>
     struct TypeArray : public TypeArrayBase {
-        constexpr static std::tuple<Ts...> Types = { };
+        using Types = std::tuple<Ts...>;
 
         template<size_t Index>
-        using Get = std::remove_cvref_t<decltype(std::get<Index>(Types))>;
+        using Get = std::tuple_element_t<Index, Types>;
 
         constexpr static size_t Size = sizeof...(Ts);
     };
