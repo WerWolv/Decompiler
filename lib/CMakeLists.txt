@@ -9,3 +9,4 @@ add_library(DecompilerLib
         )
 
 target_include_directories(DecompilerLib PUBLIC include)
+target_link_libraries(DecompilerLib PUBLIC fmt::fmt)

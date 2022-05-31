@@ -14,4 +14,6 @@ namespace dc::hlp {
         return c >= 'A' && c <= 'Z';
     }
 
+    struct Empty { };
+
 }

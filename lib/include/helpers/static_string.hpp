@@ -10,7 +10,7 @@ namespace dc::hlp {
     class StaticString {
     public:
         constexpr StaticString(const char (&string)[N]) {
-            std::copy_n(string, size(), this->data);
+            std::copy_n(string, N, this->data);
         }
 
         [[nodiscard]]
@@ -26,7 +26,7 @@ namespace dc::hlp {
             return this->data + size();
         }
 
-        char data[size()];
+        char data[N];
     };
 
 }

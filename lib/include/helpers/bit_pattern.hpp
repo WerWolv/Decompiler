@@ -8,9 +8,21 @@
 
 namespace dc::hlp {
 
-    template<StaticString Pattern>
+    template<StaticString Pattern, std::endian Endian>
     class BitPattern {
     public:
+
+        template<char Placeholder>
+        [[maybe_unused]]
+        consteval static bool hasPlaceholder() {
+            for (char c : Pattern) {
+                if (c == Placeholder)
+                    return true;
+            }
+
+            return false;
+        }
+
 
         [[maybe_unused]]
         consteval static size_t getPlaceholderCount() {
@@ -38,10 +50,10 @@ namespace dc::hlp {
             constexpr auto CompareValues = getBitCompareValues();
 
             if (container.size() < Size) return false;
-            if (sizeof(container[0]) != sizeof(uint8_t)) return false;
+            if (sizeof(container[0]) != sizeof(u8)) return false;
 
-            for (uint32_t i = 0; i < Size; i++) {
-                if ((container[i] & BitMask[i]) != CompareValues[i])
+            for (u32 i = 0; i < Size; i++) {
+                if ((container[Endian == std::endian::little ? ((Size - 1) - i) : i] & BitMask[i]) != CompareValues[i])
                     return false;
             }
 
@@ -50,15 +62,18 @@ namespace dc::hlp {
 
         template<char Placeholder>
         [[nodiscard]] [[maybe_unused]] constexpr static auto getPlaceholderValue(const auto &container) {
+            constexpr size_t Size = getByteCount();
+
             static_assert(isLower(Placeholder) || isUpper(Placeholder), "Invalid placeholder");
+            static_assert(hasPlaceholder<Placeholder>(), "Placeholder not found in Pattern");
 
-            uint64_t result = 0x00;
+            u64 result = 0x00;
 
-            uint32_t pos = 0;
+            u32 pos = 0;
             for (char c : Pattern) {
                 if (c == Placeholder) {
                     result <<= 1;
-                    result |= (container[pos / 8] & (0x80 >> (pos % 8))) != 0;
+                    result |= (container[Endian == std::endian::little ? ((Size - 1) - (pos / 8)) : pos / 8] & (0x80 >> (pos % 8))) != 0;
                 }
 
                 if (shouldConsiderCharacter(c))
@@ -91,14 +106,15 @@ namespace dc::hlp {
         }
 
         constexpr static auto getBitMask() {
-            std::array<uint8_t, getByteCount()> result = { };
+            std::array<u8, getByteCount()> result = { };
 
-            uint32_t pos = 0;
+            u32 pos = 0;
             for (char c : Pattern) {
-                if (c == '0' || c == '1') {
+                if (shouldConsiderCharacter(c))
                     result[pos / 8] <<= 1;
+
+                if (c == '0' || c == '1')
                     result[pos / 8] |= 1;
-                }
 
                 if (shouldConsiderCharacter(c))
                     pos++;
@@ -108,12 +124,13 @@ namespace dc::hlp {
         }
 
         constexpr static auto getBitCompareValues() {
-            std::array<uint8_t, getByteCount()> result = { };
+            std::array<u8, getByteCount()> result = { };
 
-            uint32_t pos = 0;
+            u32 pos = 0;
             for (char c : Pattern) {
-                if (c == '0' || c == '1')
+                if (shouldConsiderCharacter(c))
                     result[pos / 8] <<= 1;
+
                 if (c == '1')
                     result[pos / 8] |= 1;
 
