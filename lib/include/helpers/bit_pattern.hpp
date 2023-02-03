@@ -4,6 +4,7 @@
 #include <helpers/static_string.hpp>
 #include <helpers/utils.hpp>
 
+#include <array>
 #include <numeric>
 
 namespace dc::hlp {
