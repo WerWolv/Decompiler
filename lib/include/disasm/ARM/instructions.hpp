@@ -5,8 +5,10 @@
 
 namespace dc::disasm::arm::v7::thumb {
 
+    using namespace dc::ast;
+
     template<hlp::StaticString MnemonicValue, hlp::StaticString PatternValue>
-    struct InstructionARMBase : public Instruction<MnemonicValue, PatternValue, std::endian::little> { };
+    struct InstructionARMBase : public Instruction<MnemonicValue, PatternValue, Category::Other, std::endian::little> { };
 
     template<hlp::StaticString MnemonicValue, hlp::StaticString PatternValue>
     struct InstructionARM : public InstructionARMBase<MnemonicValue, PatternValue> {
@@ -91,6 +93,10 @@ namespace dc::disasm::arm::v7::thumb {
             return fmt::format("{} {}", Parent::Mnemonic, formatImpl<First, Rest...>(bytes));
         }
 
+        constexpr static std::string disassemble(u64 address, std::span<const u8> bytes) {
+            return asVector(create<ASTNodeAssembly>(fmt::format("{} {}", MnemonicValue, disassemble(address, bytes))));
+        }
+
     private:
         template<auto First, auto ... Rest>
         static constexpr auto formatImpl(const auto &bytes) {
@@ -105,8 +111,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        constexpr static auto disassemble(const auto &bytes) {
+        constexpr static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<m>, R<dn>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -115,8 +125,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using d    = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<n>, Imm<imm3>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -124,8 +138,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm8 = Placeholder<'i'>;
         using dn   = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, Imm<imm8>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -134,8 +152,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<m>, R<n>, R<d>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -143,8 +165,12 @@ namespace dc::disasm::arm::v7::thumb {
         using dn = Placeholder<'n'>;
         using m  = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -152,32 +178,48 @@ namespace dc::disasm::arm::v7::thumb {
         using d    = Placeholder<'d'>;
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, SP, Imm<imm8, 2>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrADDSPImmediateT2 : public InstructionARM<"add", "1011'0000'0'iiiiiii"> {
         using imm7 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<SP, SP, Imm<imm7, 2>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrADDSPRegisterT1 : public InstructionARM<"add", "01000100'm'1101'mmm"> {
         using dm = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dm>, SP, R<dm>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrADDSPRegisterT2 : public InstructionARM<"add", "01000100'1'mmmm'101"> {
         using m = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<SP, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -185,8 +227,12 @@ namespace dc::disasm::arm::v7::thumb {
         using d    = Placeholder<'d'>;
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, Imm<imm8, 2>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -194,8 +240,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -204,8 +254,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m    = Placeholder<'m'>;
         using d    = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>, Imm<imm5>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -213,8 +267,12 @@ namespace dc::disasm::arm::v7::thumb {
         using dn = Placeholder<'n'>;
         using m  = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -222,16 +280,24 @@ namespace dc::disasm::arm::v7::thumb {
         using cond = Placeholder<'c'>;
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<Cond<cond>, ImmSigned<imm8, 8, 1>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrBT2 : public InstructionARM<"b", "11100'iiiiiiiiiii"> {
         using imm11 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<ImmSigned<imm11, 11, 1>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -239,32 +305,48 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrBKPT : public InstructionARM<"bkpt", "1011'1110'iiiiiiii"> {
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<Imm<imm8>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrBLX : public InstructionARM<"blx", "010001'11'1'mmmm'xxx"> {
         using m = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrBX : public InstructionARM<"bx", "010001'11'0'mmmm'xxx"> {
         using m = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -272,8 +354,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm6 = Placeholder<'i'>;
         using n = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<n>, Imm<imm6, 1>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -281,8 +367,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm6 = Placeholder<'i'>;
         using n = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<n>, Imm<imm6, 1>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -290,8 +380,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using n = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<m>, R<n>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -299,8 +393,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<n>, Imm<imm8>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -308,8 +406,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using n = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<n>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -317,8 +419,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using n = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<n>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -341,8 +447,12 @@ namespace dc::disasm::arm::v7::thumb {
             return result;
         }
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes) + (enable::get(bytes) == 0 ? "IE" : "ID") + formatFlags(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -350,8 +460,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -392,8 +506,12 @@ namespace dc::disasm::arm::v7::thumb {
             return result;
         }
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes) + formatMask(bytes) + Cond<cond>()(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -417,11 +535,15 @@ namespace dc::disasm::arm::v7::thumb {
             return result + " }";
         }
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             if (register_list::get(bytes) & (1 << n::get(bytes)))
                 return format<RWriteBack<n>>(bytes) + formatRegisterList(bytes);
             else
                 return format<R<n>>(bytes) + formatRegisterList(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -430,8 +552,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, Imm<imm5, 2>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -439,8 +565,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm8 = Placeholder<'i'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<SP, Imm<imm8, 2>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -448,8 +578,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm8 = Placeholder<'i'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Imm<imm8, 2>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -458,8 +592,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -468,8 +606,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, Imm<imm5>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -478,8 +620,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -488,8 +634,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, Imm<imm5, 1>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -498,8 +648,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -508,8 +662,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -518,8 +676,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -528,8 +690,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m    = Placeholder<'m'>;
         using d    = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>, Imm<imm5>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -537,8 +703,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -547,8 +717,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m    = Placeholder<'m'>;
         using d    = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>, Imm<imm5>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -556,8 +730,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -565,8 +743,12 @@ namespace dc::disasm::arm::v7::thumb {
         using d    = Placeholder<'d'>;
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, Imm<imm8>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -574,8 +756,12 @@ namespace dc::disasm::arm::v7::thumb {
         using d = Placeholder<'d'>;
         using m = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -583,8 +769,12 @@ namespace dc::disasm::arm::v7::thumb {
         using d = Placeholder<'d'>;
         using m = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -592,8 +782,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n  = Placeholder<'n'>;
         using dm = Placeholder<'m'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dm>, R<n>, R<dm>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -601,14 +795,22 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrNOP : public InstructionARM<"nop", "1011'1111'0000'0000"> {
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -616,8 +818,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -645,8 +851,12 @@ namespace dc::disasm::arm::v7::thumb {
             return result + " }";
         }
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes) + formatRegisterList(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -674,8 +884,12 @@ namespace dc::disasm::arm::v7::thumb {
             return result + " }";
         }
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes) + formatRegisterList(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -683,8 +897,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -692,8 +910,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -701,8 +923,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -710,8 +936,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -719,8 +949,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<n>, Imm<0>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -728,14 +962,22 @@ namespace dc::disasm::arm::v7::thumb {
         using m  = Placeholder<'m'>;
         using dn = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrSEV : public InstructionARM<"sev", "1011'1111'0100'0000"> {
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -759,11 +1001,15 @@ namespace dc::disasm::arm::v7::thumb {
             return result + " }";
         }
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             if (register_list::get(bytes) & (1 << n::get(bytes)))
                 return format<RWriteBack<n>>(bytes) + formatRegisterList(bytes);
             else
                 return format<R<n>>(bytes) + formatRegisterList(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -772,8 +1018,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, Imm<imm5, 2>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -781,8 +1031,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm8 = Placeholder<'i'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<SP, Imm<imm8, 2>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -791,8 +1045,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -801,8 +1059,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, Imm<imm5>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -811,8 +1073,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -821,8 +1087,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using t    = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, Imm<imm5, 1>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -831,8 +1101,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using t = Placeholder<'t'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<t>, Deref<R<n>, R<m>>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -841,8 +1115,12 @@ namespace dc::disasm::arm::v7::thumb {
         using n    = Placeholder<'n'>;
         using d    = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<n>, Imm<imm3>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -850,8 +1128,12 @@ namespace dc::disasm::arm::v7::thumb {
         using imm8 = Placeholder<'i'>;
         using dn   = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<dn>, Imm<imm8>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -860,24 +1142,36 @@ namespace dc::disasm::arm::v7::thumb {
         using n = Placeholder<'n'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<n>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrSUBSPMinusImmediate : public InstructionARM<"sub", "1011'0000'1'iiiiiii"> {
         using imm7 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<SP, SP, Imm<imm7, 2>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrSVC : public InstructionARM<"svc", "1101'1111'iiiiiiii"> {
         using imm8 = Placeholder<'i'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<Imm<imm8>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -885,8 +1179,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -894,8 +1192,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -903,8 +1205,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using n = Placeholder<'n'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<n>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -912,8 +1218,12 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
@@ -921,26 +1231,42 @@ namespace dc::disasm::arm::v7::thumb {
         using m = Placeholder<'m'>;
         using d = Placeholder<'d'>;
 
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format<R<d>, R<m>>(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrWFE : public InstructionARM<"wfe", "1011'1111'0010'0000"> {
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrWFI : public InstructionARM<"wfi", "1011'1111'0011'0000"> {
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
     struct InstrYIELD : public InstructionARM<"yield", "1011'1111'0001'0000"> {
-        static auto disassemble(const auto &bytes) {
+        static std::string disassemble(u64 address, std::span<const u8> bytes) {
             return format(bytes);
+        }
+
+        constexpr static std::vector<std::unique_ptr<ASTNode>> decompile(u64 address, std::span<const u8> bytes) {
+            return { };
         }
     };
 
